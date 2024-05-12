@@ -2,6 +2,7 @@ import scrapy
 from urllib.parse import urlparse
 import os.path
 import csv
+import psycopg2
 
 class BlogSpider(scrapy.Spider):
     name = 'blogspider'
@@ -47,15 +48,30 @@ class BlogSpider(scrapy.Spider):
         for link in new_filtered_links:
             yield {'url': link}
 
-        output_file_name = f"PortaisColetados/{domain}.csv"
-        with open(output_file_name, 'a', newline='') as file:
-                writer = csv.writer(file)
-                for link in new_filtered_links:
-                    writer.writerow([link])
+        try:
+            connection = psycopg2.connect(
+                user="postgres",
+                password="crazydata",
+                host="localhost",
+                port="5432",
+                database="framecolector"
+            )
+            cursor = connection.cursor()
+
+            for link in new_filtered_links:
+                cursor.execute("INSERT INTO opendata.pages (url, site_id, created_at) VALUES (%s, %s, CURRENT_DATE)", (link, int(self.site_id)))
+                connection.commit()
+
+        except (psycopg2.Error, psycopg2.DatabaseError) as error:
+            print("Erro ao conectar ou inserir dados no banco de dados PostgreSQL:", error)
 
         if level < int(self.stop):
             for link in self.filtered_links:
                 yield response.follow(link, callback=self.parse, meta={'level': level + 1})
+        
+        if connection: 
+            cursor.close()
+            connection.close()
 
     def url_ends_with_extension(self, url):
         ext = os.path.splitext(url)[1]

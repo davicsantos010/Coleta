@@ -1,19 +1,18 @@
 import subprocess
 import sys
-import csv
+import psycopg2
 
-def start_scrapy_for_url(url, stop):
+def start_scrapy_for_url(url, stop, site_id):
     # Comando para iniciar o Scrapy para uma URL específica
-    command = [sys.executable, '-m', 'scrapy', 'runspider', 'coletor.py', '-a', f'file={url}', '-a', f'stop={stop}']
+    command = [sys.executable, '-m', 'scrapy', 'runspider', 'coletor.py', '-a', f'file={url}', '-a', f'stop={stop}', '-a', f'site_id={site_id}']
     subprocess.run(command, check=True)
 
 def main():
-    if len(sys.argv) < 3:
-        print("Uso: python start_scrapy_for_urls.py <arquivo_urls> <stop>")
+    if len(sys.argv) < 2:
+        print("Uso: main.py <stop>")
         sys.exit(1)
 
-    arquivo_urls = sys.argv[1]
-    stop = sys.argv[2]
+    stop = sys.argv[1]
 
     # Verificar se o argumento 'stop' é um número inteiro
     try:
@@ -22,18 +21,36 @@ def main():
         print("O argumento 'stop' deve ser um número inteiro.")
         sys.exit(1)
 
-    # Ler as URLs do arquivo CSV
-    urls = []
-    with open(arquivo_urls, 'r') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            if row:  # Verifica se a linha não está vazia
-                url = row[0].strip()  # Obtém a URL e remove espaços em branco
-                urls.append(url)
+    # Conectar ao banco de dados PostgreSQL
+    try:
+        connection = psycopg2.connect(
+            user="postgres",
+            password="crazydata",
+            host="localhost",
+            port="5432",
+            database="framecolector"
+        )
 
-    # Iniciar o processo do Scrapy para cada URL
-    for url in urls:
-        start_scrapy_for_url(url, stop)
+        cursor = connection.cursor()
+
+        # Consultar as URLs e seus respectivos site_id do banco de dados
+        cursor.execute("SELECT url, site_id FROM urls_table")
+        rows = cursor.fetchall()
+
+        # Iniciar o processo do Scrapy para cada URL
+        for row in rows:
+            url = row[0]
+            site_id = row[1]
+            start_scrapy_for_url(url, stop, site_id)
+
+    except (psycopg2.Error, psycopg2.DatabaseError) as error:
+        print("Erro ao conectar ou consultar o banco de dados PostgreSQL:", error)
+        sys.exit(1)
+    finally:
+        # Fechar a conexão com o banco de dados
+        if connection:
+            cursor.close()
+            connection.close()
 
 if __name__ == '__main__':
     main()
