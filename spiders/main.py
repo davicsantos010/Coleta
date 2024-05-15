@@ -27,14 +27,14 @@ def main():
             user="postgres",
             password="crazydata",
             host="localhost",
-            port="5432",
+            port="5435",
             database="framecolector"
         )
 
         cursor = connection.cursor()
 
         # Consultar as URLs e seus respectivos site_id do banco de dados
-        cursor.execute("SELECT url, site_id FROM urls_table")
+        cursor.execute("SELECT url, site_id FROM opendata.sites")
         rows = cursor.fetchall()
 
         # Iniciar o processo do Scrapy para cada URL
