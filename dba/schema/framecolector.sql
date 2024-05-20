@@ -29,7 +29,8 @@ CREATE TABLE opendata.sites (
 	site_id serial NOT NULL,
 	url varchar(2048) NOT NULL,
 	created_at date NOT NULL DEFAULT CURRENT_DATE,
-  CONSTRAINT sites_pk PRIMARY KEY (site_id)
+	status integer NOT NULL DEFAULT 0,  -- Coluna status adicionada aqui
+	CONSTRAINT sites_pk PRIMARY KEY (site_id)
 );
 -- ddl-end --
 ALTER TABLE opendata.sites OWNER TO postgres;

@@ -53,7 +53,7 @@ class BlogSpider(scrapy.Spider):
                 user="postgres",
                 password="crazydata",
                 host="localhost",
-                port="5432",
+                port="5435",
                 database="framecolector"
             )
             cursor = connection.cursor()

@@ -42,6 +42,13 @@ def main():
             url = row[0]
             site_id = row[1]
             start_scrapy_for_url(url, stop, site_id)
+             # Atualizar o status para 1 após a coleta
+            try:
+                cursor.execute("UPDATE opendata.sites SET status = 1 WHERE site_id = %s", (site_id,))
+                connection.commit()
+            except (psycopg2.Error, psycopg2.DatabaseError) as error:
+                print(f"Erro ao atualizar o status do site_id {site_id}: {error}")
+
 
     except (psycopg2.Error, psycopg2.DatabaseError) as error:
         print("Erro ao conectar ou consultar o banco de dados PostgreSQL:", error)
