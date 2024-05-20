@@ -34,20 +34,23 @@ def main():
         cursor = connection.cursor()
 
         # Consultar as URLs e seus respectivos site_id do banco de dados
-        cursor.execute("SELECT url, site_id FROM opendata.sites")
+        cursor.execute("SELECT url, site_id, status FROM opendata.sites")
         rows = cursor.fetchall()
 
         # Iniciar o processo do Scrapy para cada URL
         for row in rows:
             url = row[0]
             site_id = row[1]
-            start_scrapy_for_url(url, stop, site_id)
-             # Atualizar o status para 1 após a coleta
-            try:
-                cursor.execute("UPDATE opendata.sites SET status = 1 WHERE site_id = %s", (site_id,))
-                connection.commit()
-            except (psycopg2.Error, psycopg2.DatabaseError) as error:
-                print(f"Erro ao atualizar o status do site_id {site_id}: {error}")
+            status = row[2]
+            
+            if status == 0:
+                start_scrapy_for_url(url, stop, site_id)
+                # Atualizar o status para 1 após a coleta
+                try:
+                    cursor.execute("UPDATE opendata.sites SET status = 1 WHERE site_id = %s", (site_id,))
+                    connection.commit()
+                except (psycopg2.Error, psycopg2.DatabaseError) as error:
+                    print(f"Erro ao atualizar o status do site_id {site_id}: {error}")
 
 
     except (psycopg2.Error, psycopg2.DatabaseError) as error:
