@@ -8,7 +8,7 @@ class BlogSpider(scrapy.Spider):
     name = 'blogspider'
 
     extensions = [
-    '.txt', '.doc', '.docx', '.odt', '.rtf', '.pdf', '/pdf'
+    '.txt', '.doc', '.docx', '.odt', '.rtf', '.pdf', '/pdf',
     '.csv', '.xls', '.xlsx', '.ods',
     '.ppt', '.pptx', '.odp', '.key',
     '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg',
